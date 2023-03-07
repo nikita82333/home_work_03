@@ -1,7 +1,7 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 
-#include <vector>
+#include <list>
 #include <cmath>
 
 #include "Block.hpp"
@@ -15,28 +15,22 @@ public:
     void deallocate(T* ptr, std::size_t size);
 
 private:
-    std::vector<Block<T>> _blocks;
+    std::list<Block<T>> _blocks;
 };
 
 template <typename T, std::size_t BLOCK_SIZE>
 T* Memory<T, BLOCK_SIZE>::allocate(std::size_t size) {
-    std::size_t multiplier = 1;
-    if (size > BLOCK_SIZE) {
-        multiplier = std::round(size / BLOCK_SIZE);
-        if (size % BLOCK_SIZE != 0) {
-            ++multiplier;
-        }
-    }
     T* ptr = nullptr;
     for (auto& block : _blocks) {
-        if (block.can_allocate(size)) {
-            ptr = block.allocate(size);
+        ptr = block.try_allocate(size);
+        if (ptr != nullptr) {
             break;
         }
     }
     if (ptr == nullptr) {
-        _blocks.emplace_back(Block<T>(BLOCK_SIZE * multiplier));
-        ptr = _blocks.back().allocate(size);
+        std::size_t multiplier = std::ceil((double)size / BLOCK_SIZE);
+        _blocks.emplace_back(BLOCK_SIZE * multiplier);
+        ptr = _blocks.back().try_allocate(size);
     }
     return ptr;
 }

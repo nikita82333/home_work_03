@@ -22,7 +22,7 @@ public:
     ~BlockAllocator() = default;
 
     template <typename U>
-    BlockAllocator(const BlockAllocator<U, BLOCK_SIZE> &) {}
+    explicit BlockAllocator(const BlockAllocator<U, BLOCK_SIZE> &) {}
 
     T *allocate(std::size_t n) {
         std::cout << "allocate: [n = " << n << "]" << std::endl;
